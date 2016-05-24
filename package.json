@@ -28,6 +28,8 @@
   },
   "homepage": "https://gitlab.com/fxi/vt#README",
   "dependencies": {
+    "dot": "^1.0.3",
+    "node-rsa": "^0.3.2",
     "tilesplash": "^2.0.1"
   },
   "devDependencies": {}
