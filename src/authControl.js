@@ -35,6 +35,13 @@ var container = function(s){
       key:s.pg.key
     });
 
+    if( out.l !== undefined ){
+      tile.layer = out.l;
+    }
+    if( out.v !== undefined ){
+      tile.variables = out.v.split(",");
+    }
+
     // get a pg client from the connection pool
     pg.connect(s.pg.con, function(err, client, done) {
       // handle error 
@@ -58,7 +65,8 @@ var container = function(s){
 
       client.query(out.sql, function(err, result) {
         if(handleError(err)) return ;
-        tile.data = JSON.parse(result.rows[0].req);
+        tile.allowed = JSON.parse(result.rows[0].req);
+
         done();
         next();
       });

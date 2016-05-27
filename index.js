@@ -23,27 +23,9 @@ var layers = {};
     ' FROM  {{=it.layer}} ' + 
     ' WHERE {{=it.geom}} && !bbox_4326! AND ST_Intersects( {{=it.geom}}, !bbox_4326!)'
     );
-
-
-/*var sqlIntersect = dot.template(*/
- //' SELECT {{=it.variables}}, ' +
-    //' CASE ' +
-    //' WHEN ST_CoveredBy( a.{{=it.geom}}, !bbox_4326!) ' +
-    //' THEN ST_AsGeoJSON( a.{{=it.geom}} )' + 
-    //' ELSE ' + 
-    //' ST_AsGeoJSON( ' +
-    //' ST_Multi( ' +
-    //' ST_Intersection( a.{{=it.geom}}, !bbox_4326!) ' +
-    //' )) ' +
-    //' END AS the_geom_geojson ' +
-    //' FROM {{=it.layer}} AS a ' + 
-    //' WHERE ST_Intersects( a.{{=it.geom}}, !bbox_4326!)'
-    //);
     
-    
-    /*)*/
 /* set app log levels */
-/*app.logLevel("debug");*/
+ // app.logLevel("debug");
 /* Set pg types parser */
 types.setTypeParser(20, function(val) {
   return parseFloat(val);
@@ -53,7 +35,7 @@ types.setTypeParser(20, function(val) {
 app.layer('tile', authControl, function(tile, render){
 
   /* if the middleware "authControl" refuse access, render an error */
-  if( ! tile.data ){
+  if( ! tile.allowed || !tile.layer ){
     render.raw(401);
   }
 
@@ -79,7 +61,7 @@ app.layer('tile', authControl, function(tile, render){
 });
 
 app.cache(function(tile){
-  return app.defaultCacheKeyGenerator(tile) + ':' + tile.t; //cache by tile.token
+  return app.defaultCacheKeyGenerator(tile) + ':' + tile.variables ; //cache by tile.token
 }, 1000 * 60 * 60 * 24 * 30); //ttl 30 days
 
 
