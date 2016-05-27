@@ -23,9 +23,27 @@ var layers = {};
     ' FROM  {{=it.layer}} ' + 
     ' WHERE {{=it.geom}} && !bbox_4326! AND ST_Intersects( {{=it.geom}}, !bbox_4326!)'
     );
+
+
+/*var sqlIntersect = dot.template(*/
+ //' SELECT {{=it.variables}}, ' +
+    //' CASE ' +
+    //' WHEN ST_CoveredBy( a.{{=it.geom}}, !bbox_4326!) ' +
+    //' THEN ST_AsGeoJSON( a.{{=it.geom}} )' + 
+    //' ELSE ' + 
+    //' ST_AsGeoJSON( ' +
+    //' ST_Multi( ' +
+    //' ST_Intersection( a.{{=it.geom}}, !bbox_4326!) ' +
+    //' )) ' +
+    //' END AS the_geom_geojson ' +
+    //' FROM {{=it.layer}} AS a ' + 
+    //' WHERE ST_Intersects( a.{{=it.geom}}, !bbox_4326!)'
+    //);
     
+    
+    /*)*/
 /* set app log levels */
- // app.logLevel("debug");
+/*app.logLevel("debug");*/
 /* Set pg types parser */
 types.setTypeParser(20, function(val) {
   return parseFloat(val);
@@ -35,21 +53,21 @@ types.setTypeParser(20, function(val) {
 app.layer('tile', authControl, function(tile, render){
 
   /* if the middleware "authControl" refuse access, render an error */
-  if( ! tile.allowed || !tile.layer ){
+  if( ! tile.data ){
     render.raw(401);
   }
 
   /* if there is no variables requested return everything  */
-  if( tile.variables === undefined ){
+  if( tile.data.variables === undefined ){
     tile.variables="*";
   }else{
-    tile.variables= '"' + tile.variables.split(",").join('", "') + '"';
+    tile.data.variables= '"' + tile.data.variables.join('", "') + '"';
   }
 /* store available layers */
   var sql = sqlIntersect({ 
     geom: "geom",
-    variables: tile.variables,
-    layer: tile.layer
+    variables: tile.data.variables,
+    layer: tile.data.layer 
   });
 
   layers[tile.data.layer] = sql ;
@@ -61,7 +79,7 @@ app.layer('tile', authControl, function(tile, render){
 });
 
 app.cache(function(tile){
-  return app.defaultCacheKeyGenerator(tile) + ':' + tile.variables ; //cache by tile.token
+  return app.defaultCacheKeyGenerator(tile) + ':' + tile.data.variables; //cache by tile.token
 }, 1000 * 60 * 60 * 24 * 30); //ttl 30 days
 
 

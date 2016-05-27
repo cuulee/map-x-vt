@@ -30,17 +30,15 @@ var container = function(s){
     }
     // default : refuse access 
 
+    if( out.t === undefined ){
+    done();
+    next();
+    }
+
     out.sql = sqlDecryptRequest({
       request:out.t,
       key:s.pg.key
     });
-
-    if( out.l !== undefined ){
-      tile.layer = out.l;
-    }
-    if( out.v !== undefined ){
-      tile.variables = out.v;
-    }
 
     // get a pg client from the connection pool
     pg.connect(s.pg.con, function(err, client, done) {
@@ -65,7 +63,7 @@ var container = function(s){
 
       client.query(out.sql, function(err, result) {
         if(handleError(err)) return ;
-        tile.allowed = JSON.parse(result.rows[0].req);
+        tile.data = JSON.parse(result.rows[0].req);
         done();
         next();
       });
