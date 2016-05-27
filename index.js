@@ -48,8 +48,8 @@ app.layer('tile', authControl, function(tile, render){
 /* store available layers */
   var sql = sqlIntersect({ 
     geom: "geom",
-    variables: tile.data.variables,
-    layer: tile.data.layer 
+    variables: tile.variables,
+    layer: tile.layer
   });
 
   layers[tile.data.layer] = sql ;

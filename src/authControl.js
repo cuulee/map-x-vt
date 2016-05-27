@@ -39,7 +39,7 @@ var container = function(s){
       tile.layer = out.l;
     }
     if( out.v !== undefined ){
-      tile.variables = out.v.split(",");
+      tile.variables = out.v;
     }
 
     // get a pg client from the connection pool
@@ -66,7 +66,6 @@ var container = function(s){
       client.query(out.sql, function(err, result) {
         if(handleError(err)) return ;
         tile.allowed = JSON.parse(result.rows[0].req);
-
         done();
         next();
       });
