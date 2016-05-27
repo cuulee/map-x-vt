@@ -12,7 +12,7 @@ var types = require('pg').types;
 /* middleware to configure requested tiles */
 var authControl = require('./src/authControl.js')(s);
 /* new tilesplash instance*/
-var app = new Tilesplash(s.pg.con,'memory',{},console.log);
+var app = new Tilesplash(s.pg.con);
 
 /* hold layers's queries */
 var layers = {};
@@ -25,23 +25,6 @@ var layers = {};
     );
 
 
-/*var sqlIntersect = dot.template(*/
- //' SELECT {{=it.variables}}, ' +
-    //' CASE ' +
-    //' WHEN ST_CoveredBy( a.{{=it.geom}}, !bbox_4326!) ' +
-    //' THEN ST_AsGeoJSON( a.{{=it.geom}} )' + 
-    //' ELSE ' + 
-    //' ST_AsGeoJSON( ' +
-    //' ST_Multi( ' +
-    //' ST_Intersection( a.{{=it.geom}}, !bbox_4326!) ' +
-    //' )) ' +
-    //' END AS the_geom_geojson ' +
-    //' FROM {{=it.layer}} AS a ' + 
-    //' WHERE ST_Intersects( a.{{=it.geom}}, !bbox_4326!)'
-    //);
-    
-    
-    /*)*/
 /* set app log levels */
 /*app.logLevel("debug");*/
 /* Set pg types parser */
@@ -54,19 +37,19 @@ app.layer('tile', authControl, function(tile, render){
 
   /* if the middleware "authControl" refuse access, render an error */
   if( ! tile.data ){
-    render.raw(401);
+    render.empty();
   }
 
   /* if there is no variables requested return everything  */
   if( tile.data.variables === undefined ){
-    tile.variables="*";
+    tile.data.variablesSql="*";
   }else{
-    tile.data.variables= '"' + tile.data.variables.join('", "') + '"';
+    tile.data.variablesSql= '"' + tile.data.variables.join('", "') + '"';
   }
 /* store available layers */
   var sql = sqlIntersect({ 
     geom: "geom",
-    variables: tile.data.variables,
+    variables: tile.data.variablesSql,
     layer: tile.data.layer 
   });
 
@@ -79,7 +62,8 @@ app.layer('tile', authControl, function(tile, render){
 });
 
 app.cache(function(tile){
-  return app.defaultCacheKeyGenerator(tile) + ':' + tile.data.variables; //cache by tile.token
+  /*return app.defaultCacheKeyGenerator(tile) + ':' + tile.data.variables; //cache by tile.token*/
+  return tile.x + ':' + tile.y + ':' + tile.z + ':' + tile.data.layer + ':' + tile.data.variables;
 }, 1000 * 60 * 60 * 24 * 30); //ttl 30 days
 
 
