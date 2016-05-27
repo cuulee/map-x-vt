@@ -12,43 +12,65 @@ var types = require('pg').types;
 /* middleware to configure requested tiles */
 var authControl = require('./src/authControl.js')(s);
 /* new tilesplash instance*/
-var app = new Tilesplash(s.pg.con);
+var app = new Tilesplash(s.pg.con,'memory',{},console.log);
+
 /* hold layers's queries */
 var layers = {};
-/* define commone sql template for querying layers */
-var sqlIntersect = dot.template(`
-    SELECT ST_AsGeoJSON( {{=it.geom}} ) as the_geom_geojson, 
-    {{=it.vars}}
-    FROM  {{=it.layer}} 
-    WHERE ST_Intersects( {{=it.geom}}, !bbox_4326!)
-    `);
+// define commone sql template for querying layers 
+   var sqlIntersect = dot.template(
+    ' SELECT ST_AsGeoJSON( {{=it.geom}}, 3) as the_geom_geojson, ' +
+    ' {{=it.variables}} ' +
+    ' FROM  {{=it.layer}} ' + 
+    ' WHERE {{=it.geom}} && !bbox_4326! AND ST_Intersects( {{=it.geom}}, !bbox_4326!)'
+    );
+
+
+/*var sqlIntersect = dot.template(*/
+ //' SELECT {{=it.variables}}, ' +
+    //' CASE ' +
+    //' WHEN ST_CoveredBy( a.{{=it.geom}}, !bbox_4326!) ' +
+    //' THEN ST_AsGeoJSON( a.{{=it.geom}} )' + 
+    //' ELSE ' + 
+    //' ST_AsGeoJSON( ' +
+    //' ST_Multi( ' +
+    //' ST_Intersection( a.{{=it.geom}}, !bbox_4326!) ' +
+    //' )) ' +
+    //' END AS the_geom_geojson ' +
+    //' FROM {{=it.layer}} AS a ' + 
+    //' WHERE ST_Intersects( a.{{=it.geom}}, !bbox_4326!)'
+    //);
+    
+    
+    /*)*/
 /* set app log levels */
-//app.logLevel("debug");
+/*app.logLevel("debug");*/
 /* Set pg types parser */
 types.setTypeParser(20, function(val) {
   return parseFloat(val);
 });
+
 /* define app layers and middleware */
-app.layer('tiles', authControl, function(tile, render){
+app.layer('tile', authControl, function(tile, render){
 
   /* if the middleware "authControl" refuse access, render an error */
-  if( ! tile.allow ){
+  if( ! tile.data ){
     render.raw(401);
   }
 
   /* if there is no variables requested return everything  */
-  if( tile.vars === undefined ){
-    tile.vars="*";
+  if( tile.variables === undefined ){
+    tile.variables="*";
   }else{
-    tile.vars= '"' + tile.vars.split(",").join('", "') + '"';
+    tile.variables= '"' + tile.variables.split(",").join('", "') + '"';
   }
 /* store available layers */
   var sql = sqlIntersect({ 
-    geom: tile.geom,
-    vars: tile.vars,
-    layer: tile.lay 
+    geom: "geom",
+    variables: tile.data.variables,
+    layer: tile.data.layer 
   });
-  layers[tile.lay] = sql ;
+
+  layers[tile.data.layer] = sql ;
 
   /* render layers */
 
@@ -57,7 +79,7 @@ app.layer('tiles', authControl, function(tile, render){
 });
 
 app.cache(function(tile){
-  return app.defaultCacheKeyGenerator(tile) + ':' + tile.token; //cache by tile.token
+  return app.defaultCacheKeyGenerator(tile) + ':' + tile.t; //cache by tile.token
 }, 1000 * 60 * 60 * 24 * 30); //ttl 30 days
 
 

@@ -2,37 +2,20 @@
 var pg = require('pg');
 var dot = require('dot');
 
-var sqlAllowRequest = dot.template(`
-    select exists (
-      select ln from
-      (
-       SELECT un, ug
-       FROM   
-       ( 
-        SELECT data->>'name'::text AS un,
-        json_array_elements( data -> 'group')::text::int AS ug
-        FROM   tmp_users 
-       ) t
-       WHERE  t.un::text = '{{=it.user}}'
-      ) usr INNER JOIN
-      (
-       SELECT ln, lg
-       FROM   
-       (
-        SELECT data->>'layer'::text AS ln,
-        jsonb_array_elements(data -> 'group')::text::int AS lg 
-        FROM tmp_layers 
-       ) l
-       WHERE l.ln = '{{=it.layer}}'
-      ) lay  
-ON (
-    usr.ug = lay.lg) 
-);
-`)
+var sqlDecryptRequest = dot.template(
+    "select mx_decrypt('{{=it.request}}','{{=it.key}}') as req"
+    );
+/*     var sql = sqlAllowRequest({*/
+//user:tile.user,
+//layer:tile.lay
+/*});*/
+
+
 
 var container = function(s){
   var authControl = function(req, res, tile, next){
 
+    var out = {};
     /* SET HEADER */
 
     res.header( {
@@ -41,23 +24,30 @@ var container = function(s){
       'Cache-Control': 'max-age=3600',
     });
 
-    /* store requested arg in tile for use in main  */
-    for(q in req.query){
-      tile[q] = req.query[q];
+    /*  // store requested arg in tile for use in main*/
+    for(var q in req.query){
+      out[q] = req.query[q];
     }
-    /* default : refuse access */
-    tile.allow = false;
+    // default : refuse access 
+
+    out.sql = sqlDecryptRequest({
+      request:out.t,
+      key:s.pg.key
+    });
 
     // get a pg client from the connection pool
     pg.connect(s.pg.con, function(err, client, done) {
       // handle error 
       var handleError = function(err) {
+
+      //console.log(err);
         // all good, continue
         if(!err) return false;
         // return client to con pool
         if(client){
           done(client);
         }
+        console.log(err);
         res.end('An error occurred');
         // stop here, return the message
         return true;
@@ -66,21 +56,16 @@ var container = function(s){
       // stop here ?
       if(handleError(err)) return;
 
-      var sql = sqlAllowRequest({
-        user:tile.user,
-        layer:tile.lay
-      })
-
-      client.query(sql, function(err, result) {
+      client.query(out.sql, function(err, result) {
         if(handleError(err)) return ;
-        tile.allow = result.rows[0].exists;
+        tile.data = JSON.parse(result.rows[0].req);
         done();
         next();
       });
     });
-
   };
-  return(authControl);
+  /*};*/
+return(authControl);
 };
 
 module.exports = container ;
