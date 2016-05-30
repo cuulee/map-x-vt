@@ -17,17 +17,17 @@ var app = new Tilesplash(s.pg.con,"redis");
 var layers = {};
 
 // define commone sql template for querying layers 
+
 var sqlIntersect = dot.template(
-    " SELECT ST_AsGeoJSON( {{=it.geom}},3) as the_geom_geojson, " +
+    " SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology({{=it.geom}},(select (1000/(256*2^{{=it.z}})))),3) as the_geom_geojson, " +
     " {{=it.variables}} " +
     " FROM  {{=it.layer}} " +
     " WHERE {{=it.geom}} && !bbox_4326! " +
-    "AND ST_Intersects( {{=it.geom}}, !bbox_4326!)" +
-    "AND exists (" +
-    "select id from mx_users where key='{{=it.key}}' and id={{=it.id}}" +
+    " AND ST_Intersects( {{=it.geom}}, !bbox_4326!)" +
+    " AND exists (" +
+    " select id from mx_users where key='{{=it.key}}' and id={{=it.id}}" +
     ")"
     );
-
 
 /* set app log levels */
 /*app.logLevel("debug");*/
@@ -61,7 +61,7 @@ midWar = function(req, res, tile, next){
 /* define app layers and middleware */
 app.layer('tile', midWar, function(tile, render){
 
-  /* if the middleware "authControl" refuse access, render an error */
+  /* check query parameters for each tile*/
   if( ! tile.t || !tile.v || !tile.l || !tile.u ){
     render.empty();
   }
