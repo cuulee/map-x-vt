@@ -11,7 +11,7 @@ var Tilesplash = require('tilesplash');
 var types = require('pg').types;
 /* middleware to configure requested tiles */
 /* new tilesplash instance*/
-var app = new Tilesplash(s.pg.con);
+var app = new Tilesplash(s.pg.con,"redis");
 
 /* hold layers's queries */
 var layers = {};
