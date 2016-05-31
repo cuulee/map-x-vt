@@ -68,11 +68,12 @@ app.layer('tile', midWar, function(tile, render){
 
   /* store available layers */
   var sql = sqlIntersect({ 
-    geom: "geom",
     variables: tile.v,
     layer: tile.l,
+    geom: "geom",
     key : tile.t,
-    id : tile.u
+    id : tile.u,
+    z : tile.z
   });
 
   layers[tile.l] = sql ;
