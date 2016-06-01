@@ -66,6 +66,10 @@ app.layer('tile', midWar, function(tile, render){
     render.empty();
   }
 
+
+
+
+
   /* store available layers */
   var sql = sqlIntersect({ 
     variables: tile.v,
@@ -78,6 +82,7 @@ app.layer('tile', midWar, function(tile, render){
 
   layers[tile.l] = sql ;
 
+  console.log(Object.keys(layers).length);
   /* render layers */
 
   render( layers );
