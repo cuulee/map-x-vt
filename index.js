@@ -1,23 +1,23 @@
 /* load settings local and global */
 var s = require('./settings/settings-local.js');
-/* crate sql templates */
+/* crate sql templates. (there is also a built ) */
 var dot = require('dot');
-
 /* load tile splash object */
 var Tilesplash = require('tilesplash');
 /* load pg type
    To get every possible oid of types :
    psql -c "select typname, oid, typarray from pg_type order by oid" */
 var types = require('pg').types;
-/* middleware to configure requested tiles */
+
+/* Set pg types parser */
+types.setTypeParser(20, function(val) {
+  return parseFloat(val);
+});
+
 /* new tilesplash instance*/
 var app = new Tilesplash(s.pg.con,"redis");
 
-/* hold layers's queries */
-var layers = {};
-
-// define commone sql template for querying layers 
-
+/* define sql template for querying layers */
 var sqlIntersect = dot.template(
     " SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology({{=it.geom}},(select (1000/(256*2^{{=it.z}})))),3) as the_geom_geojson, " +
     " {{=it.variables}} " +
@@ -32,11 +32,7 @@ var sqlIntersect = dot.template(
 /* set app log levels */
 /*app.logLevel("debug");*/
 
-/* Set pg types parser */
-types.setTypeParser(20, function(val) {
-  return parseFloat(val);
-});
-
+/* Middleware : add header, copy query parameters to object tile member  */
 midWar = function(req, res, tile, next){
 
   res.header( {
@@ -66,9 +62,8 @@ app.layer('tile', midWar, function(tile, render){
     render.empty();
   }
 
-
-
-
+  /* object to store multiple query. Key = layer name */
+  var layers = {};
 
   /* store available layers */
   var sql = sqlIntersect({ 
@@ -82,9 +77,7 @@ app.layer('tile', midWar, function(tile, render){
 
   layers[tile.l] = sql ;
 
-  console.log(Object.keys(layers).length);
   /* render layers */
-
   render( layers );
 
 });
