@@ -19,7 +19,7 @@ var app = new Tilesplash(s.pg.con,"redis");
 
 /* define sql template for querying layers */
 var sqlIntersect = dot.template(
-    " SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology({{=it.geom}},(select (500/(256*2^{{=it.z}})))),10) as the_geom_geojson, " +
+    " SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology({{=it.geom}},(select (2000/(256*2^{{=it.z}})))),10) as the_geom_geojson, " +
     " {{=it.variables}} " +
     " FROM  {{=it.layer}} " +
     " WHERE {{=it.geom}} && !bbox_4326! " +
