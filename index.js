@@ -19,8 +19,10 @@ var app = new Tilesplash(s.pg.con,"redis");
 
 /* define sql template for querying layers */
 var sqlIntersect = dot.template(
-    " SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology({{=it.geom}},(select (1000/(512*2^{{=it.z}})))),10) as the_geom_geojson, " +
-    " {{=it.variables}} " +
+    " SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology({{=it.geom}},(select (1000/(512*2^({{=it.z}}+1))))),10) as the_geom_geojson " +
+    " {{~it.variables :value:index}} " +
+    " ,\"{{=value}}\" " +
+    " {{~}} " +
     " FROM  {{=it.layer}} " +
     " WHERE {{=it.geom}} && !bbox_4326! " +
     " AND ST_Intersects( {{=it.geom}}, !bbox_4326!)" +
@@ -67,7 +69,7 @@ app.layer('tile', midWar, function(tile, render){
 
   /* store available layers */
   var sql = sqlIntersect({ 
-    variables: tile.v,
+    variables: tile.v.split(","),
     layer: tile.l,
     geom: "geom",
     key : tile.t,
@@ -84,7 +86,8 @@ app.layer('tile', midWar, function(tile, render){
 
 app.cache(function(tile){
   return tile.x + ':' + tile.y + ':' + tile.z + ':' + tile.l + ':' + tile.v + ':' + tile.t;
-}, 1000 * 60 * 60 * 24 * 30); //ttl 30 days
+//}, 1000 * 60 * 60 * 24 * 30); //ttl 30 days
+}, 1); //ttl 30 days
 
 
 app.server.listen(3030);
