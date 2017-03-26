@@ -1,16 +1,13 @@
-var s = {};
+s = {};
 s.pg = {};
-s.pg.con = {};
 
 s.pg.con = {
-  user : "postgres",
-  database : "postgres",
-  password : "1234",
+  user : "",
+  database : "",
+  password : "<user password>",
   port : 5432,
-  host : "localhost"
+  host : "localhost",
+  key : "<pg encryption key>" 
 };
-
-s.pg.key = "1234";
-
 
 module.exports = s ;

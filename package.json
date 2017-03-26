@@ -1,36 +1,15 @@
 {
   "name": "vt",
   "version": "0.0.1",
-  "description": "node vector tile end point for postgis using tilesplash",
+  "description": "vt test",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@gitlab.com/fxi/vt.git"
-  },
-  "keywords": [
-    "node",
-    "vector",
-    "tile",
-    "end",
-    "point",
-    "for",
-    "postgis",
-    "using",
-    "tilesplash"
-  ],
-  "author": "f@fxi.io",
+  "author": "",
   "license": "MIT",
-  "bugs": {
-    "url": "https://gitlab.com/fxi/vt/issues"
-  },
-  "homepage": "https://gitlab.com/fxi/vt#README",
   "dependencies": {
-    "dot": "^1.0.3",
-    "node-rsa": "^0.3.2",
-    "tilesplash": "^2.0.1"
-  },
-  "devDependencies": {}
+    "dot": "^1.1.1",
+    "tilesplash": "^2.1.2"
+  }
 }
