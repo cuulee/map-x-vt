@@ -4,6 +4,7 @@ var s = require('./settings/settings-local.js');
 var Tilesplash = require('tilesplash');
 var pg = require('pg');
 
+//var app = new Tilesplash(s.pg.con,"redis");
 var app = new Tilesplash(s.pg.con,"redis");
 
 var pool = new pg.Pool(s.pg.con); 
@@ -40,7 +41,6 @@ var middleWare = function(req, res, tile, next){
       done();
       if(err) return console.error('error running query', err);
       tile.sql = result.rows[0].query;
-
       tile.view = req.query.view;
       next();
     });
@@ -56,12 +56,8 @@ app.layer('tile', middleWare, function(tile, render){
 });
 
 app.cache(function(tile){ 
-  /*var cache = app.defaultCacheKeyGenerator(tile) + ":" + tile.geom_hash +":"+ tile.view;*/
   cache = tile.view + ":" + tile.x + ":" + ":" + tile.y + ":" + tile.z + ":" + tile.sql;
   return cache;
-  //}, 1000 * 60 * 60 * 24 * 30); //ttl 30 days
-  //}, 1000 * 60 * 60 * 24 * 1); //ttl 1 days
-  //}, 1000 * 60 * 60 * 1); //ttl 1 hour
-  }, 1); //ttl 1 ms
+  }, s.cache.ttl ); // time to live
 
 app.server.listen(3030);
