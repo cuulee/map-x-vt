@@ -60,7 +60,7 @@ var middleWare = function(req, res, tile, next){
       if(data.mask){
         sql = templates.mask;
       }else{
-        sql = template.simple;
+        sql = templates.simple;
       }
       tile.sql = parseTemplate(sql,data);
       tile.view = req.query.view;
