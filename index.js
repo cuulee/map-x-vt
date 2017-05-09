@@ -13,8 +13,8 @@ var app = new Tilesplash(s.pg.con,"redis");
 
 
 var templates = {
-  simple : fs.readFileSync("templates/getGeojsonTileSimple.sql"),
-  mask : fs.readFileSync("templates/getGeojsonTileMask.sql"),
+  simple : fs.readFileSync("templates/getGeojsonSimple.sql"),
+  mask : fs.readFileSync("templates/getGeojsonMask.sql"),
   view : fs.readFileSync("template/getViewData.sql")
 };
 
