@@ -20,12 +20,11 @@ var templates = {
 
 var parseTemplate = function(template, data){
   return template
-    .replace(/{{([^{{}}]+)}}]/g, 
+    .replace(/{{([^{}]+)}}/g, 
       function(matched, key) {
         return data[key] ;
       });
 };
-
 
 
 /* Middleware : add header, copy query parameters to object tile member  */
