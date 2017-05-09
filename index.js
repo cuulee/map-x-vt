@@ -13,14 +13,14 @@ var app = new Tilesplash(s.pg.con,"redis");
 
 
 var templates = {
-  simple : fs.readFileSync("templates/getGeojsonSimple.sql"),
-  mask : fs.readFileSync("templates/getGeojsonMask.sql"),
-  view : fs.readFileSync("templates/getViewData.sql")
+  simple : fs.readFileSync("templates/getGeojsonSimple.sql",encoding="UTF-8"),
+  mask : fs.readFileSync("templates/getGeojsonMask.sql",encoding="UTF-8"),
+  view : fs.readFileSync("templates/getViewData.sql",endoding="UTF-8")
 };
 
 var parseTemplate = function(template, data){
   return template
-    .replace(/{([^{}]+)}/g, 
+    .replace(/{{([^{{}}]+)}}]/g, 
       function(matched, key) {
         return data[key] ;
       });
