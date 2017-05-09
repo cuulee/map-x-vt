@@ -57,7 +57,8 @@ var middleWare = function(req, res, tile, next){
       data =  result.rows[0];
       data.geom = "geom";
       data.zoom = tile.z;
-      if(data.mask){
+      if(!data.layer || data.layer == '{}') return next();
+      if(data.mask && data.mask !== '{}'){
         sql = templates.mask;
       }else{
         sql = templates.simple;
