@@ -1,15 +1,32 @@
 /* load settings local and global */
 var s = require('./settings/settings-local.js');
+/* node postgres and node pg pool */
+var fs = require('fs');
+var pg = require('pg');
+var pool = new pg.Pool(s.pg.con);
+
 /* load tile splash object */
 var Tilesplash = require('tilesplash');
-var pg = require('pg');
-
-//var app = new Tilesplash(s.pg.con,"redis");
 var app = new Tilesplash(s.pg.con,"redis");
 
-var pool = new pg.Pool(s.pg.con); 
-
 //app.logLevel("debug");
+
+
+var templates = {
+  simple : fs.readFileSync("templates/getGeojsonTileSimple.sql"),
+  mask : fs.readFileSync("templates/getGeojsonTileMask.sql"),
+  view : fs.readFileSync("template/getViewData.sql")
+};
+
+var parseTemplate = function(template, data){
+  return template
+    .replace(/{([^{}]+)}/g, 
+      function(matched, key) {
+        return data[key] ;
+      });
+};
+
+
 
 /* Middleware : add header, copy query parameters to object tile member  */
 var middleWare = function(req, res, tile, next){
@@ -21,43 +38,48 @@ var middleWare = function(req, res, tile, next){
   });
 
   pool.connect(function(err, client, done) {
-    if(err) {
-      return console.error('error fetching client from pool', err);
-    }
-
-    tile.view = req.query.view;
-    
-    //sql = 'SELECT mx_decrypt(\'' + req.query.query + '\',\''+ s.pg.con.key+'\') AS query';
-
-    sql = 'SELECT mx_decrypt(' +
-      '( SELECT data#>>\'{"source","query"}\'' +
-      ' FROM mx_views '+
-      ' WHERE id=\'' + tile.view + '\'' +
-      ' ORDER BY date_modified DESC ' +
-      ' LIMIT 1 )'+
-      ' , \'' + s.pg.con.key + '\' ) AS query ';
-
+    if(err) done(err);
+    var data = { idView : req.query.view };
+    var sql = parseTemplate(
+      templates.view,
+      data
+    );
     client.query(sql, function(err, result) {
+      if(err) return done(err);
       done();
-      if(err) return console.error('error running query', err);
-      tile.sql = result.rows[0].query;
+      /*
+      * Get view data. Keys ;
+      * layer
+      * variable
+      * mask (optional)
+      * geom (set after)
+      * zoom (set after)
+      */
+      data =  result.rows[0];
+      data.geom = "geom";
+      data.zoom = tile.z;
+      if(data.mask){
+        sql = templates.mask;
+      }else{
+        sql = template.simple;
+      }
+      tile.sql = parseTemplate(sql,data);
       tile.view = req.query.view;
       next();
     });
   });
 };
 
-/* define app layers and middleware */
-app.layer('tile', middleWare, { simplify_distance: 7 },function(tile, render){
-
+  /* define app layers and middleware */
+  app.layer('tile', middleWare, function(tile, render){
     toRender = {};
     toRender[tile.view] = tile.sql;
     render(toRender);
-});
+  });
 
-app.cache(function(tile){ 
-  cache = tile.view + ":" + tile.x + ":" + ":" + tile.y + ":" + tile.z + ":" + tile.sql;
-  return cache;
+  app.cache(function(tile){ 
+    cache = tile.view + ":" + tile.x + ":" + ":" + tile.y + ":" + tile.z + ":" + tile.sql;
+    return cache;
   }, s.cache.ttl ); // time to live
 
-app.server.listen(3030);
+  app.server.listen(3030);
