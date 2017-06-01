@@ -8,16 +8,16 @@
     k.{{geom}} && b.{{geom}}
   ),
   main as(
-    SELECT m.{{geom}}, m.{{variable}} 
-    FROM  {{layer}} m, mask k, bbox b 
-    WHERE 
+    SELECT m.{{geom}}, {{attributes}}
+    FROM  {{layer}} m, mask k, bbox b
+    WHERE
     m.{{geom}} && b.{{geom}} AND 
     m.{{geom}} && k.{{geom}}
   ),
   overlap as (
-    SELECT m.{{variable}},
+    SELECT {{attributes}},
     CASE WHEN GeometryType(m.{{geom}}) != $$POINT$$
-      THEN 
+      THEN
       CASE 
       WHEN ST_CoveredBy(
         m.{{geom}},
@@ -43,5 +43,5 @@ SELECT ST_AsGeoJSON(
     {{geom}}
     , ( SELECT (1000/(512*2^({{zoom}}+1))) ) 
   )
-  , 10 ) as the_geom_geojson, o.{{variable}}
+  , 10 ) as the_geom_geojson, {{attributes}}
 FROM overlap o

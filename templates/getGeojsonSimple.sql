@@ -3,7 +3,7 @@ SELECT ST_AsGeoJSON(
     {{geom}}
     , ( SELECT (1000/(512*2^({{zoom}}+1))) ) 
   )
-  , 10 ) as the_geom_geojson, {{variable}}
+  , 10 ) as the_geom_geojson, {{attributes}}
 FROM {{layer}}
 WHERE {{geom}} && !bbox_4326!
 AND ST_Intersects( {{geom}}, !bbox_4326! )

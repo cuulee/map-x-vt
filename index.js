@@ -26,6 +26,31 @@ var parseTemplate = function(template, data){
       });
 };
 
+var getDistinct = function(arr){
+  var test = {};
+  var out = [];
+  arr.forEach(function(v){
+    if(!test[v]){  
+      test[v] = true;
+      out.push(v);
+    }
+  });
+  return out ;
+};
+
+var toPgColumn = function(arr){
+  return  '"'+arr.join('","')+'"' ;
+};
+
+var attrToPgCol = function(attribute,attributes){
+   if(!attribute || attribute.constructor == Object) attribute = [];
+   if(!attributes || attributes.constructor == Object) attributes = []; 
+   if(attribute.constructor !== Array ) attribute = [attribute];
+   if(attributes.constructor !== Array ) attributes = [attributes];
+   var attr = getDistinct(attribute.concat(attributes));
+   return toPgColumn(attr);
+};
+
 
 /* Middleware : add header, copy query parameters to object tile member  */
 var middleWare = function(req, res, tile, next){
@@ -57,14 +82,17 @@ var middleWare = function(req, res, tile, next){
       data =  result.rows[0];
       data.geom = "geom";
       data.zoom = tile.z;
-      if(!data.layer || data.layer == '{}') return next();
-      if(data.mask && data.mask !== '{}'){
+      if( !data.layer || data.layer.constructor === Object ) return next();
+      if(data.mask && data.mask.constructor !== Object ){
         sql = templates.mask;
       }else{
         sql = templates.simple;
       }
+      data.attributes = attrToPgCol(data.attribute,data.attributes);
       tile.sql = parseTemplate(sql,data);
       tile.view = req.query.view;
+      tile.date_modified = req.query.date_modified;
+      tile.attributes = data.attributes;
       next();
     });
   });
@@ -78,7 +106,7 @@ var middleWare = function(req, res, tile, next){
   });
 
   app.cache(function(tile){ 
-    cache = tile.view + ":" + tile.x + ":" + ":" + tile.y + ":" + tile.z + ":" + tile.sql;
+    cache = tile.view + ":" + tile.attribute + ":" + tile.date_modified + ":" + tile.x + ":" + ":" + tile.y + ":" + tile.z ;
     return cache;
   }, s.cache.ttl ); // time to live
 
