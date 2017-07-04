@@ -4,7 +4,7 @@ var s = require('./settings/settings-local.js');
 var fs = require('fs');
 var pg = require('pg');
 var pool = new pg.Pool(s.pg.con);
-
+var crypto = require('crypto');
 /* load tile splash object */
 var Tilesplash = require('tilesplash');
 var app = new Tilesplash(s.pg.con,"redis");
@@ -91,7 +91,7 @@ var middleWare = function(req, res, tile, next){
       data.attributes = attrToPgCol(data.attribute,data.attributes);
       tile.sql = parseTemplate(sql,data);
       tile.view = req.query.view;
-      tile.date_modified = req.query.date_modified;
+      tile.date = req.query.date;
       tile.attributes = data.attributes;
       next();
     });
@@ -106,7 +106,12 @@ var middleWare = function(req, res, tile, next){
   });
 
   app.cache(function(tile){ 
-    cache = tile.view + ":" + tile.attribute + ":" + tile.date_modified + ":" + tile.x + ":" + ":" + tile.y + ":" + tile.z ;
+    var str = tile.view + "_" + tile.x + "_" + tile.y + "_" + tile.z + "_" + tile.date; 
+    cache = crypto
+      .createHash('md5')
+      .update(str)
+      .digest("hex");
+
     return cache;
   }, s.cache.ttl ); // time to live
 
