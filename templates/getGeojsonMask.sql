@@ -39,9 +39,10 @@ ELSE
 )
 
 SELECT ST_AsGeoJSON(
-  ST_SimplifyPreserveTopology(
+  -- ST_SimplifyPreserveTopology(
     {{geom}}
-    , ( SELECT (1000/(512*2^({{zoom}}+1))) ) 
-  )
-  , 10 ) as the_geom_geojson, {{attributes}}
+    -- , ( SELECT (1000/(512*2^({{zoom}}+1))) ) 
+  -- )
+    -- , 10 )
+    ) as the_geom_geojson, {{attributes}}
 FROM overlap o
