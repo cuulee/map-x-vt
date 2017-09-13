@@ -99,7 +99,7 @@ var middleWare = function(req, res, tile, next){
 };
 
   /* define app layers and middleware */
-  app.layer('tile',  middleWare, { simplify_distance: 5 }, function(tile, render){
+  app.layer('tile',  middleWare, { simplify_distance: 4 }, function(tile, render){
     toRender = {};
     toRender[tile.view] = tile.sql;
     render(toRender);
