@@ -39,6 +39,8 @@ var getDistinct = function(arr){
 };
 
 var toPgColumn = function(arr){
+  // add gid in all request
+  arr.push("gid");
   return  '"'+arr.join('","')+'"' ;
 };
 

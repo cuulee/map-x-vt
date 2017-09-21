@@ -43,6 +43,6 @@ SELECT ST_AsGeoJSON(
     {{geom}}
       , (SELECT (1e2/(512*2^{{zoom}})))
    )
-   , 10 )
+   , 10
     ) as the_geom_geojson, {{attributes}}
 FROM overlap o
