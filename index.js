@@ -52,10 +52,11 @@ var attrToPgCol = function(attribute,attributes){
 };
 
 
-app.server.get('/views/:idView', function(req, res){
+app.server.get('/view/:idView/row/:idRow', function(req, res){
 
   var out = {};
   var idView = req.params.idView;
+  var idRow = req.params.idRow;
 
   res.header({
     'Access-Control-Allow-Origin': '*',
@@ -67,7 +68,10 @@ app.server.get('/views/:idView', function(req, res){
 
     var sql = parseTemplate(
       templates.viewFull,
-      { idView: idView }
+      { 
+        idView: idView, 
+        idRow: idRow 
+      }
     );
 
     pool.connect(function(err, client, done) {
