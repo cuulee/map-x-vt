@@ -10,6 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "dot": "^1.1.1",
+    "md5-file": "^3.2.3",
+    "pg": "^6.1.0",
     "tilesplash": "^2.1.2"
   }
 }
