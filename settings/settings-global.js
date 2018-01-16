@@ -15,7 +15,7 @@ module.exports = {
   },
   images : {
     paths : {
-      permanent : "/Users/fxi/Documents/unep_grid/map-x/data/mx_user_data",
+      permanent : "/tmp/",
       temporary : "/tmp/",
       url : "/userdata/"
     }
