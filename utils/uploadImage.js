@@ -49,10 +49,10 @@ var moveFiles = function(req,res,next){
 
     var url = path.resolve(imgUrl,userFolder,fileHash);
 
-    fs.rename(oldPath, newPath, function(){
+    copyFile(oldPath, newPath).then(function(){
       req.file.url = url;
-     next();
-    }); 
+      next();
+    });
   });
 
 };
@@ -62,4 +62,19 @@ module.exports.middleware = [
   auth.validateUserToken,
   moveFiles
 ];
+
+function copyFile(source, target) {
+  var rd = fs.createReadStream(source);
+  var wr = fs.createWriteStream(target);
+  return new Promise(function(resolve, reject) {
+    rd.on('error', reject);
+    wr.on('error', reject);
+    wr.on('finish', resolve);
+    rd.pipe(wr);
+  }).catch(function(error) {
+    rd.destroy();
+    wr.end();
+    throw error;
+  });
+}
 
