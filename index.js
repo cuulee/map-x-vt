@@ -17,8 +17,7 @@ app.server.use(function(req, res, next) {
 
 
 /* Get view object */
-app.server.get('/view/:idViewRow', function(req, res){
-  var out = {};
+app.server.get('/vt/view/:idViewRow', function(req, res){
   var idViewParts = req.params.idViewRow.split("@");
   var idView = idViewParts[0];
   var idRow = idViewParts[1];
@@ -26,7 +25,7 @@ app.server.get('/view/:idViewRow', function(req, res){
 });
 
 /* Get view object TODO: old route to remove ) */
-app.server.get('/view/:idView/row/:idRow', function(req, res){
+app.server.get('/vt/view/:idView/row/:idRow', function(req, res){
   var out = {};
   var idView = req.params.idView;
   var idRow = req.params.idRow;
@@ -34,7 +33,7 @@ app.server.get('/view/:idView/row/:idRow', function(req, res){
 });
 
 
-app.server.post('/upload/image/', u.uploadImage.middleware, function(req, res, next){
+app.server.post('/vt/upload/image/', u.uploadImage.middleware, function(req, res, next){
   var data = {
     url :  req.file.url,
     size : [req.body.width,req.body.height]
@@ -43,7 +42,7 @@ app.server.post('/upload/image/', u.uploadImage.middleware, function(req, res, n
 });
 
 /* define app layers and middleware */
-app.layer('tile',  u.view.getTilesConfig, { simplify_distance: 4 }, function(tile, render){
+app.layer('vt/tile', u.view.getTilesConfig, { simplify_distance: 4 }, function(tile, render){
   var toRender = {};
   toRender[tile.view] = tile.sql;
   render(toRender);
