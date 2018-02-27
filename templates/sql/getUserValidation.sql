@@ -1,11 +1,15 @@
+WITH id as (
+  SELECT mx_decrypt('{{token}}','{{key}}')::jsonb #>>'{"id"}' as id
+)
+
 SELECT 
 EXISTS(
-SELECT
+  SELECT
   1
   FROM mx_users
-  WHERE 
-  id = {{idUser}} AND
-  data #>>'{"admin","token"}' = '{{token}}'
+  INNER JOIN id
+  ON  ( id.id::integer = mx_users.id)
   LIMIT 1
 )
-as valid
+as valid;
+

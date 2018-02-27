@@ -5,16 +5,11 @@ var s = require('./settings');
 var u = require('./utils');
 var app = new Tilesplash(s.pg.con,"redis");
 
-/*app.server.use(function(req, res, next){*/
-  //next();
-//});
-
 app.server.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
-
 
 /* Get view object */
 app.server.get('/vt/view/:idViewRow', function(req, res){
@@ -31,7 +26,6 @@ app.server.get('/vt/view/:idView/row/:idRow', function(req, res){
   var idRow = req.params.idRow;
   u.view.get(idView,idRow,res);
 });
-
 
 app.server.post('/vt/upload/image/', u.uploadImage.middleware, function(req, res, next){
   var data = {
